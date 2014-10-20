@@ -4,12 +4,16 @@ import (
 	"code.google.com/p/go.crypto/ssh/terminal"
 	"errors"
 	"flag"
+	"fmt"
+	"github.com/aybabtme/iocontrol"
 	"github.com/aybabtme/tailf"
+	"github.com/dustin/go-humanize"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 const prompt = "humanlog> "
@@ -64,7 +68,16 @@ func main() {
 		if err != nil {
 			log.Fatalf("error with interactive mode: %v", err)
 		}
+		measured := iocontrol.NewMeasuredReader(src)
+		src = measured
 		out = term
+		go func() {
+			for _ = range time.Tick(time.Second) {
+				persec := measured.BytesPerSec()
+				term.SetPrompt(fmt.Sprintf("%vps: %s", humanize.Bytes(persec), prompt))
+			}
+		}()
+
 	} else {
 		out = os.Stdout
 	}
