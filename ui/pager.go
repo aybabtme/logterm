@@ -3,7 +3,6 @@ package ui
 import (
 	"bytes"
 	"github.com/aybabtme/linehistory"
-	"github.com/nsf/termbox-go"
 	"io"
 	"unicode/utf8"
 )
@@ -55,13 +54,13 @@ func (p *PagerBox) Refresh() {
 	if start >= 0 {
 		lines = lines[start:]
 	} else {
-		// // need to pad with empty lines
-		// missing := -1 * start
-		// empties := make([]*bytes.Buffer, 0, missing)
-		// for ; missing > 0; missing-- {
-		// 	empties = append(empties, bytes.NewBuffer([]byte("\n")))
-		// }
-		// lines = append(empties, lines...)
+		// need to pad with empty lines
+		missing := -1 * start
+		empties := make([]*bytes.Buffer, 0, missing)
+		for ; missing > 0; missing-- {
+			empties = append(empties, bytes.NewBuffer([]byte("\n")))
+		}
+		lines = append(empties, lines...)
 	}
 
 	p.drawLines(lines)
@@ -79,10 +78,10 @@ func (p *PagerBox) drawLines(lines []*bytes.Buffer) {
 		for err != io.EOF {
 			x++
 			r, _, err = line.ReadRune()
-			p.win.Draw(x, y, r, termbox.ColorWhite, termbox.ColorBlack)
+			p.win.Draw(x, y, r, 0, 0)
 		}
 		for ; x < p.win.Width(); x++ {
-			p.win.Draw(x, y, ' ', termbox.ColorBlack, termbox.ColorBlack)
+			p.win.Draw(x, y, ' ', 0, 0)
 		}
 		err = nil
 		x = 0
