@@ -1,4 +1,4 @@
-Exploration ground for intergrations with `humanlog`
+Exploration ground for integrations with [`humanlog`](https://github.com/aybabtme/humanlog)
 
 logterm
 =======
