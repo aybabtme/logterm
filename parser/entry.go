@@ -33,30 +33,20 @@ type Field interface{}
 
 type NilField struct{}
 
-type UnknownField struct {
-	Value interface{}
-}
+type UnknownField Field
 
-type RawField struct {
-	Value []byte
-}
+type RawField []byte
 
-type StringField struct {
-	Value string
-}
+type StringField string
 
-type NumberField struct {
-	Value float64
-}
+type NumberField float64
 
 type DurationField struct {
-	Value time.Duration
+	time.Duration
 }
 
 type TimeField struct {
-	Value time.Time
+	time.Time
 }
 
-type BooleanField struct {
-	Value bool
-}
+type BooleanField bool

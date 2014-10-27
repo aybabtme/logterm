@@ -23,18 +23,18 @@ func setFieldFromIface(e *Entry, name string, val interface{}) {
 	switch val := val.(type) {
 	case string:
 		if t, err := tryParseTime(val); err == nil {
-			e.setField(name, TimeField{Value: t})
+			e.setField(name, TimeField{t})
 		} else if d, err := time.ParseDuration(val); err == nil {
-			e.setField(name, DurationField{Value: d})
+			e.setField(name, DurationField{d})
 		} else {
-			e.setField(name, StringField{Value: val})
+			e.setField(name, StringField(val))
 		}
 	case float64:
-		e.setField(name, NumberField{Value: val})
+		e.setField(name, NumberField(val))
 	case bool:
-		e.setField(name, BooleanField{Value: val})
+		e.setField(name, BooleanField(val))
 	case []byte:
-		e.setField(name, RawField{Value: val})
+		e.setField(name, RawField(val))
 	case []interface{}:
 		for i, arrVal := range val {
 			setFieldFromIface(e, name+"["+strconv.Itoa(i)+"]", arrVal)
@@ -46,6 +46,6 @@ func setFieldFromIface(e *Entry, name string, val interface{}) {
 	case nil:
 		setFieldFromIface(e, name, NilField{})
 	default:
-		setFieldFromIface(e, name, UnknownField{Value: val})
+		e.setField(name, UnknownField(val))
 	}
 }

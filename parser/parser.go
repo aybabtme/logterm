@@ -36,7 +36,7 @@ func (p *Parser) LogEntry() *Entry {
 	}
 
 	e := newEntry()
-	e.setField(DefaultRaw, RawField{Value: data})
+	e.setField(DefaultRaw, RawField(data))
 
 	return e
 }
