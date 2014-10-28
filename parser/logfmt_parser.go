@@ -14,13 +14,15 @@ func (k kv) String() string {
 	return string(k.key) + "=" + string(k.val)
 }
 
-func parseLogFmt(data []byte) (*Entry, bool) {
+// do a best effort parsing of logfmt entries. if `allowEmptyKey`, it
+// will parse ` =value` has `""=value`, where empty string is a valid key
+func parseLogFmt(data []byte, allowEmptyKey bool) (*Entry, bool) {
 	// don't try to parse logfmt if there's no `mykey=` in the
 	// first 100 bytes
 	if !startsWithStringEqual(data, 100) {
 		return nil, false
 	}
-	kvs := scanAllKeyValue(data)
+	kvs := scanAllKeyValue(data, allowEmptyKey)
 	e := newEntry()
 	for _, kv := range kvs {
 		e.setField(string(kv.key), inferValueField(kv.val))
@@ -91,11 +93,11 @@ func startsWithStringEqual(data []byte, atMost int) bool {
 	return false
 }
 
-func scanAllKeyValue(data []byte) []kv {
+func scanAllKeyValue(data []byte, allowEmptyKey bool) []kv {
 	i := 0
 	var kvs []kv
 	for i < len(data) {
-		keyStart, keyEnd, valStart, valEnd, found := scanKeyValue(data, i)
+		keyStart, keyEnd, valStart, valEnd, found := scanKeyValue(data, i, allowEmptyKey)
 		if !found {
 			return kvs
 		}
@@ -108,9 +110,9 @@ func scanAllKeyValue(data []byte) []kv {
 	return kvs
 }
 
-func scanKeyValue(data []byte, from int) (keyStart, keyEnd, valStart, valEnd int, found bool) {
+func scanKeyValue(data []byte, from int, allowEmptyKey bool) (keyStart, keyEnd, valStart, valEnd int, found bool) {
 
-	keyStart, keyEnd, found = findWordFollowedBy('=', data, from)
+	keyStart, keyEnd, found = findWordFollowedBy('=', data, from, allowEmptyKey)
 	if !found {
 		return
 	}
@@ -123,7 +125,7 @@ func scanKeyValue(data []byte, from int) (keyStart, keyEnd, valStart, valEnd int
 		return
 	}
 
-	nextKeyStart, _, nextFound := findWordFollowedBy('=', data, keyEnd+1)
+	nextKeyStart, _, nextFound := findWordFollowedBy('=', data, keyEnd+1, allowEmptyKey)
 
 	if nextFound {
 		valEnd = nextKeyStart - 1
@@ -134,7 +136,7 @@ func scanKeyValue(data []byte, from int) (keyStart, keyEnd, valStart, valEnd int
 	return
 }
 
-func findWordFollowedBy(by rune, data []byte, from int) (start int, end int, found bool) {
+func findWordFollowedBy(by rune, data []byte, from int, allowEmptyKey bool) (start int, end int, found bool) {
 	i := bytes.IndexRune(data[from:], by)
 	if i == -1 {
 		return i, i, false
@@ -148,10 +150,10 @@ func findWordFollowedBy(by rune, data []byte, from int) (start int, end int, fou
 		r, _ := utf8.DecodeRune(data[j:])
 		if unicode.IsSpace(r) {
 			j++
-			return j, i, true //j < i
+			return j, i, allowEmptyKey || j < i
 		}
 	}
-	return from, i, true //from < i
+	return from, i, allowEmptyKey || from < i
 }
 
 func findUnescaped(toFind, escape rune, data []byte, from int) int {

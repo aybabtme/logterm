@@ -15,8 +15,9 @@ func (b byKeyName) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 
 func TestScanKeyValue(t *testing.T) {
 	var tests = []struct {
-		input string
-		want  []kv
+		input         string
+		allowEmptyKey bool
+		want          []kv
 	}{
 		{
 			input: "hello=bye",
@@ -108,7 +109,7 @@ func TestScanKeyValue(t *testing.T) {
 
 	for n, tt := range tests {
 		t.Logf("test #%d", n)
-		got := scanAllKeyValue([]byte(tt.input))
+		got := scanAllKeyValue([]byte(tt.input), tt.allowEmptyKey)
 		sort.Sort(byKeyName(tt.want))
 		sort.Sort(byKeyName(got))
 		if !reflect.DeepEqual(tt.want, got) {
@@ -121,10 +122,11 @@ func TestScanKeyValue(t *testing.T) {
 
 func TestFindWordFollowedBy(t *testing.T) {
 	var tests = []struct {
-		input string
-		from  int
-		found bool
-		want  string
+		input         string
+		from          int
+		found         bool
+		allowEmptyKey bool
+		want          string
 	}{
 		{
 			input: "hello=bye",
@@ -193,26 +195,45 @@ func TestFindWordFollowedBy(t *testing.T) {
 		{
 			input: " hello =bye",
 			from:  0,
-			found: true,
-			want:  "",
+			found: false,
+		},
+		{
+			input:         " hello =bye",
+			from:          0,
+			allowEmptyKey: true,
+			found:         true,
+			want:          "",
 		},
 		{
 			input: "hello =bye",
 			from:  0,
-			found: true,
-			want:  "",
+			found: false,
 		},
 		{
-			input: " =bye",
-			from:  0,
-			found: true,
-			want:  "",
+			input:         "hello =bye",
+			from:          0,
+			allowEmptyKey: true,
+			found:         true,
+			want:          "",
+		},
+		{
+			input:         " =bye",
+			from:          0,
+			allowEmptyKey: true,
+			found:         true,
+			want:          "",
 		},
 		{
 			input: "=bye",
 			from:  0,
-			found: true,
-			want:  "",
+			found: false,
+		},
+		{
+			input:         "=bye",
+			from:          0,
+			allowEmptyKey: true,
+			found:         true,
+			want:          "",
 		},
 		{
 			input: "",
@@ -222,14 +243,20 @@ func TestFindWordFollowedBy(t *testing.T) {
 		{
 			input: "=",
 			from:  0,
-			found: true,
-			want:  "",
+			found: false,
+		},
+		{
+			input:         "=",
+			from:          0,
+			allowEmptyKey: true,
+			found:         true,
+			want:          "",
 		},
 	}
 
 	for n, tt := range tests {
 		t.Logf("test #%d", n)
-		start, end, found := findWordFollowedBy('=', []byte(tt.input), tt.from)
+		start, end, found := findWordFollowedBy('=', []byte(tt.input), tt.from, tt.allowEmptyKey)
 		if found != tt.found {
 			t.Errorf("want found %v, got %v", tt.found, found)
 		}

@@ -8,13 +8,14 @@ import (
 const DefaultRaw = "raw"
 
 type Parser struct {
-	scan *bufio.Scanner
+	scan          *bufio.Scanner
+	allowEmptyKey bool
 }
 
 func NewParser(r io.Reader) *Parser {
 	scan := bufio.NewScanner(r)
 	scan.Split(bufio.ScanLines)
-	return &Parser{scan: scan}
+	return &Parser{scan: scan, allowEmptyKey: true}
 }
 
 func (p *Parser) Next() bool { return p.scan.Scan() }
@@ -31,7 +32,7 @@ func (p *Parser) LogEntry() *Entry {
 		}
 	}
 
-	if e, ok := parseLogFmt(data); ok {
+	if e, ok := parseLogFmt(data, p.allowEmptyKey); ok {
 		return e
 	}
 
