@@ -15,7 +15,7 @@ func (k kv) String() string {
 }
 
 // do a best effort parsing of logfmt entries. if `allowEmptyKey`, it
-// will parse ` =value` has `""=value`, where empty string is a valid key
+// will parse ` =value` as `""=value`, where empty string is a valid key
 func parseLogFmt(data []byte, allowEmptyKey bool) (*Entry, bool) {
 	// don't try to parse logfmt if there's no `mykey=` in the
 	// first 100 bytes
@@ -34,6 +34,12 @@ func inferValueField(val []byte) Field {
 	if len(val) == 0 {
 		return NilField{}
 	}
+
+	// TODO(antoine): implement an allocation-free parsing logic
+	// when possible (time/duration/number)
+
+	// TODO(antoine): be less retarded in the way we check if
+	// a string is a time/duration/number
 
 	switch {
 	case bytes.Equal(val, []byte("true")):
