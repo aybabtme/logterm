@@ -5,7 +5,7 @@ import (
 )
 
 type Screen struct {
-	logOutput *PagerBox
-	// queryInput        *EditBox
+	logOutput  *PagerBox
+	queryInput *EditBox
 	// queryAutocomplete *SelectPopUp
 }

@@ -39,9 +39,10 @@ func main() {
 		log.Fatalf("couldn't create canvas: %v", err)
 	}
 	defer c.Close()
+	top, bot := c.FullWithBar()
 
-	win := c.Fullscreen()
-	pager := ui.NewPagerBox(win)
+	pager := ui.NewPagerBox(top)
+	edit := ui.NewEditBox(bot)
 
 	go func() {
 		n, err := io.Copy(pager, src)
@@ -51,7 +52,7 @@ func main() {
 		log.Printf("%d bytes written", n)
 	}()
 
-	err = c.Run([]ui.ResizeHandler{win}, nil)
+	err = c.Run([]ui.ResizeHandler{top, bot}, []ui.InputHandler{edit})
 	if err != nil {
 		log.Printf("error running canvas: %v", err)
 	}

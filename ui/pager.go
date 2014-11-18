@@ -21,7 +21,7 @@ func NewPagerBox(win *Window) *PagerBox {
 	maxSize := win.Width() * win.Height() * maxRuneLen
 	return &PagerBox{
 		win:   win,
-		lines: linehistory.NewRing(maxSize, '\n'),
+		lines: linehistory.NewNaive(maxSize, '\n'),
 	}
 }
 

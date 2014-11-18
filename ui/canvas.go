@@ -12,7 +12,7 @@ type ResizeHandler interface {
 }
 
 type InputHandler interface {
-	KeyPress(termbox.Key, termbox.Modifier)
+	KeyPress(ch rune, key termbox.Key, mod termbox.Modifier)
 	Mouse(termbox.Event)
 }
 
@@ -59,14 +59,20 @@ func (c *Canvas) Close() {
 	}
 }
 
-func (c *Canvas) Fullscreen() *Window {
+func (c *Canvas) FullWithBar() (top, bot *Window) {
 	return &Window{
-		canvas: c,
-		x:      0,
-		y:      0,
-		width:  c.width,
-		height: c.height,
-	}
+			canvas: c,
+			x:      0,
+			y:      0,
+			width:  c.width,
+			height: c.height - 1,
+		}, &Window{
+			canvas: c,
+			x:      0,
+			y:      c.height - 1,
+			width:  c.width,
+			height: c.height,
+		}
 }
 
 func (c *Canvas) Size() (width, height int) {
@@ -124,7 +130,7 @@ func (c *Canvas) pollEvents(resizer []ResizeHandler, inputer []InputHandler) err
 				return nil
 			}
 			for _, input := range inputer {
-				input.KeyPress(ev.Key, ev.Mod)
+				input.KeyPress(ev.Ch, ev.Key, ev.Mod)
 			}
 		case termbox.EventMouse:
 			for _, input := range inputer {
@@ -146,6 +152,7 @@ func (c *Canvas) handleKey(key termbox.Key, mod termbox.Modifier) bool {
 	case termbox.KeyEsc, termbox.KeyCtrlC, termbox.KeyCtrlD:
 		return false
 	default:
+
 		return true
 	}
 }
